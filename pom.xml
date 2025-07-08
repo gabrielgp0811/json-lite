@@ -2,11 +2,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.gabrielgp0811</groupId>
+	<groupId>io.github.gabrielgp0811</groupId>
 	<artifactId>json-lite</artifactId>
 	<version>1.0.0</version>
 	<name>Json Lite</name>
 	<description>Lite library for converting Java Objects from/to JSON.</description>
+	<url>https://github.com/gabrielgp0811/json-lite</url>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -24,7 +25,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/gabrielgp0811/json-lite.git</connection>
 		<developerConnection>scm:git:git://github.com/gabrielgp0811/json-lite.git</developerConnection>
-		<url>https://github.com/gabrielgp0811/json-lite</url>
+		<url>https://github.com/gabrielgp0811/json-lite/tree/main</url>
 	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
