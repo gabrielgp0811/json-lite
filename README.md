@@ -48,7 +48,7 @@ public class Address {
 The **User** class can be converted to JSON like this:
 
 ```java
-import com.github.gabrielgp0811.jsonlite;
+import io.github.gabrielgp0811.jsonlite;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -92,7 +92,7 @@ public class MainClass {
 Converting from JSON would be like this:
 
 ```java
-import com.github.gabrielgp0811.jsonlite;
+import io.github.gabrielgp0811.jsonlite;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -128,9 +128,9 @@ It's possible to build your own serialization like this:
 ```java
 import java.util.Date;
 
-import com.github.gabrielgp0811.jsonlite.annotation.JsonField;
-import com.github.gabrielgp0811.jsonlite.annotation.JsonPattern;
-import com.github.gabrielgp0811.jsonlite.annotation.JsonSerializer;
+import io.github.gabrielgp0811.jsonlite.annotation.JsonField;
+import io.github.gabrielgp0811.jsonlite.annotation.JsonPattern;
+import io.github.gabrielgp0811.jsonlite.annotation.JsonSerializer;
 
 @JsonSerializer(
 	name = "User.serialize",
@@ -193,7 +193,7 @@ public class User {
 That way, it's possible to convert your class to JSON like this:
 
 ```java
-import com.github.gabrielgp0811.jsonlite;
+import io.github.gabrielgp0811.jsonlite;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
