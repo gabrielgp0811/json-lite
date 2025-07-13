@@ -16,7 +16,7 @@ import java.util.Date;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -30,14 +30,14 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	 * 
 	 */
 	public JsonLocalTime() {
-
+		this.name = JsonStrings.LOCALTIME_NAME;
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonLocalTime(LocalTime value) {
-		super(value);
+		super(JsonStrings.LOCALTIME_NAME, value);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	 * @param pattern The pattern to set
 	 */
 	public JsonLocalTime(LocalTime value, String pattern) {
-		super(null, value, pattern);
+		super(JsonStrings.LOCALTIME_NAME, value, pattern);
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	 * @param locale  The locale to set
 	 */
 	public JsonLocalTime(LocalTime value, String pattern, String locale) {
-		super(null, value, pattern, locale);
+		super(JsonStrings.LOCALTIME_NAME, value, pattern, locale);
 	}
 
 	/**
@@ -64,15 +64,15 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonLocalTime(LocalTime value, String pattern, String locale, String timezone) {
-		super(null, value, pattern, locale, timezone);
+		super(JsonStrings.LOCALTIME_NAME, value, pattern, locale, timezone);
 	}
 
 	/**
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonLocalTime(LocalTime value, JsonFormatInfo info) {
-		super(null, value, info);
+	public JsonLocalTime(LocalTime value, JsonPatternInfo info) {
+		super(JsonStrings.LOCALTIME_NAME, value, info);
 	}
 
 	/**
@@ -118,12 +118,12 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonLocalTime(String name, LocalTime value, JsonFormatInfo info) {
+	public JsonLocalTime(String name, LocalTime value, JsonPatternInfo info) {
 		super(name, value, info);
 	}
 
 	@Override
-	public JsonEntry<LocalTime> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<LocalTime> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -174,7 +174,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -206,14 +206,14 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 		if (Util.isString(clazz)) {
 			try {
 				if (info.getLocale() != null) {
-					if (info.getPattern().trim().isEmpty()) {
+					if (info.getPattern() == null || info.getPattern().trim().isEmpty()) {
 						return (T) toJavaObject().format(DateTimeFormatter.ofPattern("HH:mm:ss", info.getLocale()));
 					}
 
 					return (T) toJavaObject().format(DateTimeFormatter.ofPattern(info.getPattern(), info.getLocale()));
 				}
 
-				if (!info.getPattern().trim().isEmpty()) {
+				if (info.getPattern() != null && !info.getPattern().trim().isEmpty()) {
 					return (T) toJavaObject().format(DateTimeFormatter.ofPattern(info.getPattern()));
 				}
 			} catch (NullPointerException | DateTimeException | IllegalArgumentException e) {
@@ -231,7 +231,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -252,7 +252,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -264,7 +264,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -292,7 +292,7 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -306,6 +306,11 @@ public class JsonLocalTime extends JsonEntry<LocalTime> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<LocalTime> clone() {
+		return new JsonLocalTime(name, value, info);
 	}
 
 }

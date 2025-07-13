@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import io.github.gabrielgp0811.jsonlite.Json;
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -37,14 +37,14 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	 * @param name The name to set
 	 */
 	public JsonCollection(String name) {
-		this(name, new ArrayList<Object>());
+		this(name, new ArrayList<>());
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonCollection(Collection<?> value) {
-		this(null, value);
+		this(JsonStrings.COLLECTION_NAME, value);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	 * @param pattern The pattern to set
 	 */
 	public JsonCollection(Collection<?> value, String pattern) {
-		this(null, value, pattern);
+		this(JsonStrings.COLLECTION_NAME, value, pattern);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonCollection(String name, Collection<?> value, String pattern, String locale, String timezone) {
-		this(name, value, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+		this(name, value, new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonCollection(String name, Collection<?> value, JsonFormatInfo info) {
+	public JsonCollection(String name, Collection<?> value, JsonPatternInfo info) {
 		super(name, value, info);
 
 		init();
@@ -109,28 +109,30 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	 */
 	@SuppressWarnings("unchecked")
 	private void init() {
+		if (value == null) {
+			return;
+		}
+
 		Collection<Object> list = null;
 
 		try {
-			list = (Collection<Object>) getValue();
+			list = (Collection<Object>) value;
 		} catch (ClassCastException e1) {
 			return;
 		}
 
 		for (Object obj : list) {
-			addObject(null, obj, info);
+			addChild(null, obj, info);
 		}
 	}
 
 	@Override
-	public JsonEntry<Collection<?>> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Collection<?>> addChild(String name, Object obj, JsonPatternInfo info) {
 		return addChild(Json.toJson(name, obj, info));
 	}
 
 	@Override
 	public JsonEntry<Collection<?>> addChild(JsonEntry<?> json) {
-		json.setArrayChild(true);
-
 		getChildren().add(json);
 
 		return this;
@@ -214,12 +216,14 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	}
 
 	@Override
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
-		return null;
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
+		Collection<T> collection = toJavaCollection(clazz, info);
+
+		return collection.stream().findFirst().orElse(null);
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -229,19 +233,14 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
-
-		// if (isArrayChild()) {
-		// 	builder.append(JsonStrings.START);
-		// 	builder.append(JsonStrings.WHITESPACE);
-		// }
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
 
 		if (isObjectChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -249,7 +248,9 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 
 		builder.append(JsonStrings.START_ARRAY);
 		builder.append(getChildren().stream()
+				.map(child -> child.clone())
 				.map(child -> {
+					child.setArrayChild(true);
 					child.setIndentLevel(getIndentLevel() + 1);
 					
 					return JsonStrings.LINE_SEPARATOR.concat(child.toPrettyString(tab));
@@ -260,10 +261,6 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 
 		builder.append(JsonStrings.END_ARRAY);
 
-		// if (isArrayChild()) {
-		// 	builder.append(JsonStrings.END);
-		// }
-
 		return builder.toString();
 	}
 
@@ -271,28 +268,32 @@ public class JsonCollection extends JsonEntry<Collection<?>> {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 
-		// if (!isObjectChild() && !isArrayChild()) {
-		// 	builder.append(JsonStrings.START);
-		// }
-
 		if (isObjectChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
 
 		builder.append(JsonStrings.START_ARRAY);
-		builder.append(getChildren().stream().map(child -> child.toString())
+		builder.append(getChildren().stream()
+				.map(child -> child.clone())
+				.map(child -> {
+					child.setArrayChild(true);
+
+					return child;
+				})
+				.map(child -> child.toString())
 				.collect(Collectors.joining(JsonStrings.COMMA)));
 
 		builder.append(JsonStrings.END_ARRAY);
 
-		// if (!isObjectChild() && !isArrayChild()) {
-		// 	builder.append(JsonStrings.END);
-		// }
-
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Collection<?>> clone() {
+		return new JsonCollection(name, null, info).addChildren(children);
 	}
 
 }

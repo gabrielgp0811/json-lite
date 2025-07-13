@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -24,14 +24,14 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 	 * 
 	 */
 	public JsonBoolean() {
-
+		this(false);
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonBoolean(boolean value) {
-		super(value);
+		super(JsonStrings.BOOLEAN_NAME, value);
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 	}
 
 	@Override
-	public JsonEntry<Boolean> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Boolean> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -94,7 +94,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -116,7 +116,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -137,7 +137,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -149,7 +149,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -175,7 +175,7 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -187,6 +187,11 @@ public class JsonBoolean extends JsonEntry<Boolean> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Boolean> clone() {
+		return new JsonBoolean(name, value);
 	}
 
 }

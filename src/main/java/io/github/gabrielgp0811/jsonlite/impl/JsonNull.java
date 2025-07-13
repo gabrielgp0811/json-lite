@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -24,7 +24,7 @@ public class JsonNull extends JsonEntry<Void> {
 	 * 
 	 */
 	public JsonNull() {
-
+		this(JsonStrings.NULL_NAME);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class JsonNull extends JsonEntry<Void> {
 	}
 
 	@Override
-	public JsonEntry<Void> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Void> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -95,7 +95,7 @@ public class JsonNull extends JsonEntry<Void> {
 	}
 
 	@Override
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		return null;
 	}
 
@@ -105,7 +105,7 @@ public class JsonNull extends JsonEntry<Void> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -114,7 +114,7 @@ public class JsonNull extends JsonEntry<Void> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -126,7 +126,7 @@ public class JsonNull extends JsonEntry<Void> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -152,7 +152,7 @@ public class JsonNull extends JsonEntry<Void> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -164,6 +164,11 @@ public class JsonNull extends JsonEntry<Void> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Void> clone() {
+		return new JsonNull(name);
 	}
 
 }

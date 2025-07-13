@@ -18,7 +18,7 @@ import io.github.gabrielgp0811.jsonlite.impl.JsonNull;
 import io.github.gabrielgp0811.jsonlite.impl.JsonNumber;
 import io.github.gabrielgp0811.jsonlite.impl.JsonObject;
 import io.github.gabrielgp0811.jsonlite.impl.JsonString;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -38,33 +38,33 @@ import io.github.gabrielgp0811.jsonlite.util.Util;
  * @see JsonString
  * @see JsonNull
  */
-public abstract class JsonEntry<V> implements Entry<String, V> {
+public abstract class JsonEntry<V> implements Entry<String, V>, Cloneable {
 
 	/**
 	 * The name of JSON attribute.
 	 */
-	private String name = null;
+	protected String name = null;
 
 	/**
 	 * The value of JSON attribute.
 	 */
-	private V value = null;
+	protected V value = null;
 
 	/**
 	 * The format info (pattern, locale and timezone).
 	 */
-	protected JsonFormatInfo info = null;
+	protected JsonPatternInfo info = null;
 
 	/**
 	 * Flag responsible for checking if this JSON object is a child of other JSON
 	 * object.
 	 */
-	private boolean objectChild = false;
+	protected boolean objectChild = false;
 
 	/**
 	 * Flag responsible for checking if this JSON object is an array child.
 	 */
-	private boolean arrayChild = false;
+	protected boolean arrayChild = false;
 
 	/**
 	 * The indent level. Used to print this JSON object in a way for better visualization.
@@ -82,14 +82,14 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * 
 	 */
 	public JsonEntry() {
-
+		this.name = JsonStrings.FIELD_NAME;
 	}
 
 	/**
 	 * @param value The value of JSON attribute.
 	 */
 	public JsonEntry(V value) {
-		this(null, value);
+		this(JsonStrings.FIELD_NAME, value);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param timezone The timezone.
 	 */
 	public JsonEntry(String name, V value, String pattern, String locale, String timezone) {
-		this(name, value, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+		this(name, value, new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -135,7 +135,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param value The value of JSON attribute.
 	 * @param info  The format info (pattern, locale and timezone).
 	 */
-	public JsonEntry(String name, V value, JsonFormatInfo info) {
+	public JsonEntry(String name, V value, JsonPatternInfo info) {
 		this.name = name;
 		this.value = value;
 		this.info = info;
@@ -213,8 +213,8 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param obj The JSON child object.
 	 * @return This JSON object.
 	 */
-	public JsonEntry<V> addObject(V obj) {
-		return addObject(null, obj);
+	public JsonEntry<V> addChild(V obj) {
+		return addChild(null, obj);
 	}
 
 	/**
@@ -224,8 +224,8 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param obj  The JSON child object.
 	 * @return This JSON object.
 	 */
-	public JsonEntry<V> addObject(String name, V obj) {
-		return addObject(name, obj, (String) null);
+	public JsonEntry<V> addChild(String name, V obj) {
+		return addChild(name, obj, (String) null);
 	}
 
 	/**
@@ -236,8 +236,8 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param pattern The pattern.
 	 * @return This JSON object.
 	 */
-	public JsonEntry<V> addObject(String name, V obj, String pattern) {
-		return addObject(name, obj, pattern, null);
+	public JsonEntry<V> addChild(String name, V obj, String pattern) {
+		return addChild(name, obj, pattern, null);
 	}
 
 	/**
@@ -249,8 +249,8 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param locale  The locale.
 	 * @return This JSON object.
 	 */
-	public JsonEntry<V> addObject(String name, V obj, String pattern, String locale) {
-		return addObject(name, obj, pattern, locale, null);
+	public JsonEntry<V> addChild(String name, V obj, String pattern, String locale) {
+		return addChild(name, obj, pattern, locale, null);
 	}
 
 	/**
@@ -263,8 +263,8 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param timezone The timezone.
 	 * @return This JSON object.
 	 */
-	public JsonEntry<V> addObject(String name, V obj, String pattern, String locale, String timezone) {
-		return addObject(name, obj, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+	public JsonEntry<V> addChild(String name, V obj, String pattern, String locale, String timezone) {
+		return addChild(name, obj, new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -275,7 +275,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param info The format info (pattern, locale and timezone).
 	 * @return This JSON object.
 	 */
-	public abstract JsonEntry<V> addObject(String name, Object obj, JsonFormatInfo info);
+	public abstract JsonEntry<V> addChild(String name, Object obj, JsonPatternInfo info);
 
 	/**
 	 * Add a JSON child to this JSON object.
@@ -367,7 +367,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 		Collection<JsonEntry<?>> children = getChildren();
 
 		if (children != null) {
-			return children.stream().filter(child -> child.getKey().equals(name)).findAny().isPresent();
+			return children.stream().filter(child -> child.getName().equals(name)).findAny().isPresent();
 		}
 
 		return false;
@@ -407,7 +407,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param info  The format info (pattern, locale and timezone).
 	 * @return The Java object.
 	 */
-	public abstract <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info);
+	public abstract <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info);
 
 	/**
 	 * Convert this JSON object into a Java collection.
@@ -425,19 +425,19 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param info  The format info (pattern, locale and timezone).
 	 * @return The Java collection.
 	 */
-	public abstract <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info);
+	public abstract <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info);
 
 	/**
 	 * Convert this JSON object into a Java object of class <code>clazz</code>.
 	 * <p>
-	 * Invoke this method is the same as <code>toJavaObject(clazz, info)</code>.
+	 * Invoke this method is the same as <code>toJavaObject(clazz, fieldInfo)</code>.
 	 * </p>
 	 * 
 	 * @param <T>   The <code>clazz</code> generic type.
 	 * @param clazz Class for conversion.
 	 * @return The Java object.
 	 * @see #info
-	 * @see #toJavaCollection(Class, JsonFormatInfo)
+	 * @see #toJavaObject(Class, JsonPatternInfo)
 	 */
 	public <T> T toJavaObject(Class<T> clazz) {
 		return toJavaObject(clazz, info);
@@ -498,13 +498,13 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param locale   The locale.
 	 * @param timezone The timezone.
 	 * @return The Java object.
-	 * @see JsonFormatInfo
+	 * @see JsonPatternInfo
 	 * @see Util#toLocale(String)
 	 * @see Util#toTimeZone(String)
-	 * @see #toJavaObject(Class, JsonFormatInfo)
+	 * @see #toJavaObject(Class, JsonPatternInfo)
 	 */
 	public <T> T toJavaObject(Class<T> clazz, String pattern, String locale, String timezone) {
-		return toJavaObject(clazz, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+		return toJavaObject(clazz, new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -517,7 +517,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @param clazz Class for conversion.
 	 * @return The Java collection.
 	 * @see #info
-	 * @see #toJavaCollection(Class, JsonFormatInfo)
+	 * @see #toJavaCollection(Class, JsonPatternInfo)
 	 */
 	public <T> Collection<T> toJavaCollection(Class<T> clazz) {
 		return toJavaCollection(clazz, info);
@@ -530,10 +530,7 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @return The JSON string.
 	 */
 	public String toPrettyString(String tab) {
-		if (tab != null)
-			this.tab = tab;
-
-		return this.toPrettyString();
+		return this.toString();
 	}
 
 	/**
@@ -542,7 +539,12 @@ public abstract class JsonEntry<V> implements Entry<String, V> {
 	 * @return The JSON string.
 	 */
 	public String toPrettyString() {
-		return this.toString();
+		return this.toPrettyString(tab);
+	}
+
+	@Override
+	public JsonEntry<V> clone() {
+		return this;
 	}
 
 }

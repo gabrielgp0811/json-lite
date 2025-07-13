@@ -16,10 +16,15 @@ import java.util.stream.Collectors;
 
 import io.github.gabrielgp0811.jsonlite.Json;
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
+import io.github.gabrielgp0811.jsonlite.annotation.JsonField;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonIgnore;
-import io.github.gabrielgp0811.jsonlite.annotation.JsonPattern;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.converter.Converter;
+import io.github.gabrielgp0811.jsonlite.converter.impl.JsonFieldInfoDeserializationConverter;
+import io.github.gabrielgp0811.jsonlite.converter.impl.JsonFieldInfoSerializationConverter;
+import io.github.gabrielgp0811.jsonlite.exception.JsonException;
+import io.github.gabrielgp0811.jsonlite.util.JsonFieldInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -38,7 +43,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * 
 	 */
 	public JsonObject() {
-
+		this(JsonStrings.OBJECT_NAME);
 	}
 
 	/**
@@ -52,7 +57,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param value The value to set
 	 */
 	public JsonObject(Object value) {
-		this(null, value);
+		this(JsonStrings.OBJECT_NAME, value);
 	}
 
 	/**
@@ -60,7 +65,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param pattern The pattern to set
 	 */
 	public JsonObject(Object value, String pattern) {
-		this(null, value, pattern);
+		this(JsonStrings.OBJECT_NAME, value, pattern);
 	}
 
 	/**
@@ -69,7 +74,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param locale  The locale to set
 	 */
 	public JsonObject(Object value, String pattern, String locale) {
-		this(null, value, pattern, locale, null);
+		this(JsonStrings.OBJECT_NAME, value, pattern, locale, null);
 	}
 
 	/**
@@ -79,7 +84,8 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonObject(Object value, String pattern, String locale, String timezone) {
-		this(null, value, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+		this(JsonStrings.OBJECT_NAME, value,
+				new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -87,8 +93,8 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param info  As informa&ccedil;&otilde;es da formata&ccedil;&atilde;o
 	 *              utilizada.
 	 */
-	public JsonObject(Object value, JsonFormatInfo info) {
-		this(null, value, info);
+	public JsonObject(Object value, JsonPatternInfo info) {
+		this(JsonStrings.OBJECT_NAME, value, info);
 	}
 
 	/**
@@ -96,7 +102,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param value The value to set
 	 */
 	public JsonObject(String name, Object value) {
-		this(name, value, (JsonFormatInfo) null);
+		this(name, value, (JsonPatternInfo) null);
 	}
 
 	/**
@@ -126,7 +132,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonObject(String name, Object value, String pattern, String locale, String timezone) {
-		this(name, value, new JsonFormatInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
+		this(name, value, new JsonPatternInfo(pattern, Util.toLocale(locale), Util.toTimeZone(timezone)));
 	}
 
 	/**
@@ -134,7 +140,7 @@ public class JsonObject extends JsonEntry<Object> {
 	 * @param value The value to set
 	 * @param info  The inf oto set
 	 */
-	public JsonObject(String name, Object value, JsonFormatInfo info) {
+	public JsonObject(String name, Object value, JsonPatternInfo info) {
 		super(name, value, info);
 
 		init();
@@ -144,16 +150,21 @@ public class JsonObject extends JsonEntry<Object> {
 	 * Init children JSON objects.
 	 */
 	private void init() {
-		if (Util.isMap(getValue())) {
-			Map<?, ?> map = (Map<?, ?>) getValue();
+		if (value == null) {
+			return;
+		}
 
-			map.entrySet().stream().filter(entry -> Util.isString(entry.getKey()))
-					.forEach(entry -> addObject((String) entry.getKey(), entry.getValue(), info));
+		if (Util.isMap(value)) {
+			Map<?, ?> map = (Map<?, ?>) value;
+
+			map.entrySet().stream()
+					.filter(entry -> Util.isString(entry.getKey()))
+					.forEach(entry -> addChild((String) entry.getKey(), entry.getValue(), info));
 
 			return;
 		}
 
-		Field[] fields = getValue().getClass().getDeclaredFields();
+		Field[] fields = value.getClass().getDeclaredFields();
 
 		for (Field field : fields) {
 			if (Modifier.isStatic(field.getModifiers()) || field.getType().isAnnotationPresent(JsonIgnore.class)
@@ -183,41 +194,31 @@ public class JsonObject extends JsonEntry<Object> {
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			}
 
-			JsonFormatInfo info = this.info;
+			JsonFieldInfo fieldInfo = new JsonFieldInfo(name, new String[] { name }, info);
 
-			if (field.isAnnotationPresent(JsonPattern.class)) {
-				if (info == null)
-					info = new JsonFormatInfo();
+			if (field.isAnnotationPresent(JsonField.class)) {
+				final Converter<JsonField, JsonFieldInfo> converter = new JsonFieldInfoSerializationConverter();
 
-				JsonPattern pattern = field.getDeclaredAnnotation(JsonPattern.class);
-
-				if (info.getPattern().trim().isEmpty())
-					if (!pattern.deserializePattern().trim().isEmpty())
-						info.setPattern(pattern.deserializePattern().trim());
-					else if (!pattern.value().trim().isEmpty())
-						info.setPattern(pattern.value().trim());
-
-				if (info.getLocale() == null)
-					info.setLocale(Util.toLocale(pattern.locale()));
-
-				if (info.getTimezone() == null)
-					info.setTimezone(Util.toTimeZone(pattern.timezone()));
+				try {
+					fieldInfo = converter.convert(field.getDeclaredAnnotation(JsonField.class));
+				} catch (JsonException e) {
+				}
 			}
 
-			addObject(name, value, info);
+			addChild(fieldInfo.getCustomNames()[0], value, fieldInfo.getPatternInfo());
 		}
 	}
 
 	@Override
-	public JsonEntry<Object> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Object> addChild(String name, Object obj, JsonPatternInfo info) {
 		return addChild(Json.toJson(name, obj, info));
 	}
 
 	@Override
 	public JsonEntry<Object> addChild(JsonEntry<?> json) {
 		if (json != null) {
-			if (isChildPresent(json.getKey())) {
-				JsonEntry<?> child = getChild(json.getKey());
+			if (isChildPresent(json.getName())) {
+				JsonEntry<?> child = getChild(json.getName());
 				if (Util.isObject(child)) {
 					if (Util.isObject(json)) {
 						child.addChildren(json.getChildren());
@@ -226,8 +227,6 @@ public class JsonObject extends JsonEntry<Object> {
 					}
 				}
 			} else {
-				json.setObjectChild(true);
-
 				getChildren().add(json);
 			}
 		}
@@ -273,7 +272,11 @@ public class JsonObject extends JsonEntry<Object> {
 
 	@Override
 	public JsonEntry<?> getChild(String name) {
-		return getChildren().stream().filter(json -> json.getKey().equals(name)).findFirst().orElse(null);
+		if (name == null || name.trim().isEmpty()) {
+			return null;
+		}
+
+		return getChildren().stream().filter(json -> json.getName().equals(name)).findFirst().orElse(null);
 	}
 
 	@Override
@@ -295,7 +298,7 @@ public class JsonObject extends JsonEntry<Object> {
 
 	@Override
 	public JsonEntry<?> removeChild(String name) {
-		getChildren().removeIf(child -> child.getKey().equals(name));
+		getChildren().removeIf(child -> child.getName().equals(name));
 
 		return this;
 	}
@@ -314,7 +317,7 @@ public class JsonObject extends JsonEntry<Object> {
 	}
 
 	@Override
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -335,35 +338,36 @@ public class JsonObject extends JsonEntry<Object> {
 		}
 
 		for (Field field : fields) {
-			JsonEntry<?> child = getChild(field.getName());
+			JsonFieldInfo fieldInfo = null;
 
-			if (child == null) {
+			final Converter<JsonField, JsonFieldInfo> converter = new JsonFieldInfoDeserializationConverter();
+
+			try {
+				fieldInfo = converter.convert(field.getDeclaredAnnotation(JsonField.class));
+
+				if (fieldInfo.getName().trim().isEmpty()) {
+					fieldInfo.setName(field.getName());
+				}
+			} catch (JsonException e) {
+				fieldInfo = new JsonFieldInfo(field.getName(), new String[0], info);
+			}
+
+			JsonEntry<?> child = null;
+
+			for (String customName : fieldInfo.getCustomNames()) {
+				child = getChild(customName);
+
+				if (child != null)
+					break;
+			}
+
+			if (child == null)
+				child = getChild(fieldInfo.getName());
+
+			if (child == null)
 				continue;
-			}
 
-			String fieldName = field.getName();
 			Class<?> fieldType = field.getType();
-
-			JsonFormatInfo info0 = info;
-
-			if (field.isAnnotationPresent(JsonPattern.class)) {
-				if (info0 == null)
-					info0 = new JsonFormatInfo();
-
-				JsonPattern pattern = field.getDeclaredAnnotation(JsonPattern.class);
-
-				if (info0.getPattern().trim().isEmpty())
-					if (!pattern.deserializePattern().trim().isEmpty())
-						info0.setPattern(pattern.deserializePattern().trim());
-					else if (!pattern.value().trim().isEmpty())
-						info0.setPattern(pattern.value().trim());
-
-				if (info0.getLocale() == null)
-					info0.setLocale(Util.toLocale(pattern.locale()));
-
-				if (info0.getTimezone() == null)
-					info0.setTimezone(Util.toTimeZone(pattern.timezone()));
-			}
 
 			Object value = null;
 
@@ -386,10 +390,10 @@ public class JsonObject extends JsonEntry<Object> {
 					value = child.getValue();
 				}
 			} else {
-				value = child.toJavaObject(fieldType, info0);
+				value = child.toJavaObject(fieldType, fieldInfo.getPatternInfo());
 			}
 
-			Util.setValue(result, fieldName, fieldType, value);
+			Util.setValue(result, field.getName(), fieldType, value);
 		}
 
 		return result;
@@ -401,7 +405,7 @@ public class JsonObject extends JsonEntry<Object> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -410,13 +414,13 @@ public class JsonObject extends JsonEntry<Object> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		if (isObjectChild()) {
 			builder.append(Util.getIndentTab(indentLevel, tab));
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -428,16 +432,17 @@ public class JsonObject extends JsonEntry<Object> {
 
 		builder.append(JsonStrings.START);
 		builder.append(
-			getChildren().stream()
-				.map(child -> {
-					child.setIndentLevel(getIndentLevel() + 1);
-					
-					return JsonStrings.LINE_SEPARATOR.concat(child.toPrettyString(tab));
-				})
-				.collect(Collectors.joining(JsonStrings.COMMA))
-		);
+				getChildren().stream()
+						.map(child -> child.clone())
+						.map(child -> {
+							child.setObjectChild(true);
+							child.setIndentLevel(getIndentLevel() + 1);
+
+							return JsonStrings.LINE_SEPARATOR.concat(child.toPrettyString(tab));
+						})
+						.collect(Collectors.joining(JsonStrings.COMMA)));
 		builder.append(JsonStrings.LINE_SEPARATOR);
-		
+
 		if (isObjectChild() || isArrayChild()) {
 			builder.append(Util.getIndentTab(indentLevel, tab));
 		}
@@ -453,20 +458,30 @@ public class JsonObject extends JsonEntry<Object> {
 
 		if (isObjectChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
 
 		builder.append(JsonStrings.START);
 		builder.append(
-			getChildren().stream()
-				.map(child -> child.toString())
-				.collect(Collectors.joining(JsonStrings.COMMA))
-		);
+				getChildren().stream()
+						.map(child -> child.clone())
+						.map(child -> {
+							child.setObjectChild(true);
+
+							return child;
+						})
+						.map(child -> child.toString())
+						.collect(Collectors.joining(JsonStrings.COMMA)));
 		builder.append(JsonStrings.END);
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Object> clone() {
+		return new JsonObject(name, null, info).addChildren(children);
 	}
 
 }

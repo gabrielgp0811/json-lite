@@ -20,7 +20,7 @@ import java.util.Collections;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -34,14 +34,14 @@ public class JsonString extends JsonEntry<String> {
 	 * 
 	 */
 	public JsonString() {
-
+		this(null);
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonString(String value) {
-		super(value);
+		super(JsonStrings.STRING_NAME, value);
 	}
 
 	/**
@@ -53,7 +53,7 @@ public class JsonString extends JsonEntry<String> {
 	}
 
 	@Override
-	public JsonEntry<String> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<String> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -104,7 +104,7 @@ public class JsonString extends JsonEntry<String> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -159,7 +159,7 @@ public class JsonString extends JsonEntry<String> {
 				DateFormat formatter = null;
 
 				String pattern = info.getPattern();
-				if (pattern.trim().isEmpty()) {
+				if (pattern == null || pattern.trim().isEmpty()) {
 					pattern = "EEE, MMM dd HH:mm:ss zzz yyyy";
 				}
 
@@ -267,7 +267,7 @@ public class JsonString extends JsonEntry<String> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -288,7 +288,7 @@ public class JsonString extends JsonEntry<String> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -300,7 +300,7 @@ public class JsonString extends JsonEntry<String> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -328,7 +328,7 @@ public class JsonString extends JsonEntry<String> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -342,6 +342,11 @@ public class JsonString extends JsonEntry<String> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<String> clone() {
+		return new JsonString(name, value);
 	}
 
 }

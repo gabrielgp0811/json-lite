@@ -12,10 +12,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -29,14 +31,14 @@ public class JsonDate extends JsonEntry<Date> {
 	 * 
 	 */
 	public JsonDate() {
-
+		this.name = JsonStrings.DATE_NAME;
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonDate(Date value) {
-		super(value);
+		super(JsonStrings.DATE_NAME, value);
 	}
 
 	/**
@@ -44,7 +46,7 @@ public class JsonDate extends JsonEntry<Date> {
 	 * @param pattern The pattern to set
 	 */
 	public JsonDate(Date value, String pattern) {
-		super(null, value, pattern);
+		super(JsonStrings.DATE_NAME, value, pattern);
 	}
 
 	/**
@@ -53,7 +55,7 @@ public class JsonDate extends JsonEntry<Date> {
 	 * @param locale  The locale to set
 	 */
 	public JsonDate(Date value, String pattern, String locale) {
-		super(null, value, pattern, locale);
+		super(JsonStrings.DATE_NAME, value, pattern, locale);
 	}
 
 	/**
@@ -63,15 +65,15 @@ public class JsonDate extends JsonEntry<Date> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonDate(Date value, String pattern, String locale, String timezone) {
-		super(null, value, pattern, locale, timezone);
+		super(JsonStrings.DATE_NAME, value, pattern, locale, timezone);
 	}
 
 	/**
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonDate(Date value, JsonFormatInfo info) {
-		super(null, value, info);
+	public JsonDate(Date value, JsonPatternInfo info) {
+		super(JsonStrings.DATE_NAME, value, info);
 	}
 
 	/**
@@ -117,12 +119,12 @@ public class JsonDate extends JsonEntry<Date> {
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonDate(String name, Date value, JsonFormatInfo info) {
+	public JsonDate(String name, Date value, JsonPatternInfo info) {
 		super(name, value, info);
 	}
 
 	@Override
-	public JsonEntry<Date> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Date> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -173,14 +175,20 @@ public class JsonDate extends JsonEntry<Date> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
 
+		JsonPatternInfo info0 = info;
+
+		if (info0 == null) {
+			info0 = new JsonPatternInfo();
+		}
+
 		if (Util.isLocalDate(clazz)) {
 			try {
-				return (T) toJavaObject().toInstant().atZone(info.getTimezone().toZoneId()).toLocalDate();
+				return (T) toJavaObject().toInstant().atZone(info0.getTimezone().toZoneId()).toLocalDate();
 			} catch (NullPointerException | DateTimeException e) {
 			}
 
@@ -189,7 +197,7 @@ public class JsonDate extends JsonEntry<Date> {
 
 		if (Util.isLocalTime(clazz)) {
 			try {
-				return (T) toJavaObject().toInstant().atZone(info.getTimezone().toZoneId()).toLocalTime();
+				return (T) toJavaObject().toInstant().atZone(info0.getTimezone().toZoneId()).toLocalTime();
 			} catch (NullPointerException | DateTimeException e) {
 			}
 
@@ -198,7 +206,7 @@ public class JsonDate extends JsonEntry<Date> {
 
 		if (Util.isLocalDateTime(clazz)) {
 			try {
-				return (T) toJavaObject().toInstant().atZone(info.getTimezone().toZoneId()).toLocalDateTime();
+				return (T) toJavaObject().toInstant().atZone(info0.getTimezone().toZoneId()).toLocalDateTime();
 			} catch (NullPointerException | DateTimeException e) {
 			}
 
@@ -213,19 +221,22 @@ public class JsonDate extends JsonEntry<Date> {
 			try {
 				DateFormat formatter = null;
 
-				String pattern = info.getPattern();
-				if (pattern.trim().isEmpty()) {
+				String pattern = info0.getPattern();
+				Locale locale = info0.getLocale();
+				TimeZone timezone = info0.getTimezone();
+
+				if (pattern == null || pattern.trim().isEmpty()) {
 					pattern = "EEE MMM dd HH:mm:ss zzz yyyy";
 				}
 
-				if (info.getLocale() != null) {
-					formatter = new SimpleDateFormat(pattern, info.getLocale());
+				if (locale != null) {
+					formatter = new SimpleDateFormat(pattern, locale);
 				} else {
 					formatter = new SimpleDateFormat(pattern);
 				}
 
-				if (info.getTimezone() != null) {
-					formatter.setTimeZone(info.getTimezone());
+				if (timezone != null) {
+					formatter.setTimeZone(timezone);
 				}
 
 				return (T) formatter.format(toJavaObject());
@@ -244,7 +255,7 @@ public class JsonDate extends JsonEntry<Date> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -265,7 +276,7 @@ public class JsonDate extends JsonEntry<Date> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -277,7 +288,7 @@ public class JsonDate extends JsonEntry<Date> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -305,7 +316,7 @@ public class JsonDate extends JsonEntry<Date> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -319,6 +330,11 @@ public class JsonDate extends JsonEntry<Date> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Date> clone() {
+		return new JsonDate(name, value, info);
 	}
 
 }

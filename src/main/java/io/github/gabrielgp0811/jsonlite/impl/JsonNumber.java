@@ -12,7 +12,7 @@ import java.util.Collections;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -36,14 +36,14 @@ public class JsonNumber extends JsonEntry<Number> {
 	 * 
 	 */
 	public JsonNumber() {
-
+		this.name = JsonStrings.NUMBER_NAME;
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonNumber(Number value) {
-		super(value);
+		super(JsonStrings.NUMBER_NAME, value);
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class JsonNumber extends JsonEntry<Number> {
 	}
 
 	@Override
-	public JsonEntry<Number> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Number> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -106,7 +106,7 @@ public class JsonNumber extends JsonEntry<Number> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -284,7 +284,7 @@ public class JsonNumber extends JsonEntry<Number> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -293,7 +293,7 @@ public class JsonNumber extends JsonEntry<Number> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -305,7 +305,7 @@ public class JsonNumber extends JsonEntry<Number> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -331,7 +331,7 @@ public class JsonNumber extends JsonEntry<Number> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -343,6 +343,11 @@ public class JsonNumber extends JsonEntry<Number> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonNumber clone() {
+		return new JsonNumber(name, value);
 	}
 
 }

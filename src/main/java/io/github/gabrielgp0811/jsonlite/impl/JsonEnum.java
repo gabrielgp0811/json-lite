@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -24,14 +24,14 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 	 * 
 	 */
 	public JsonEnum() {
-
+		this.name = JsonStrings.ENUM_NAME;
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonEnum(Enum<?> value) {
-		super(value);
+		super(JsonStrings.ENUM_NAME, value);
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 	}
 
 	@Override
-	public JsonEntry<Enum<?>> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<Enum<?>> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -94,7 +94,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -120,7 +120,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -129,7 +129,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -141,7 +141,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -169,7 +169,7 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -183,6 +183,11 @@ public class JsonEnum extends JsonEntry<Enum<?>> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<Enum<?>> clone() {
+		return new JsonEnum(name, value);
 	}
 
 }

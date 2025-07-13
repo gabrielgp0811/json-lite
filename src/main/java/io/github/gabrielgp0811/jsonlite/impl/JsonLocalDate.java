@@ -15,7 +15,7 @@ import java.util.Date;
 
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
 import io.github.gabrielgp0811.jsonlite.constants.JsonStrings;
-import io.github.gabrielgp0811.jsonlite.util.JsonFormatInfo;
+import io.github.gabrielgp0811.jsonlite.util.JsonPatternInfo;
 import io.github.gabrielgp0811.jsonlite.util.Util;
 
 /**
@@ -29,14 +29,14 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	 * 
 	 */
 	public JsonLocalDate() {
-
+		this.name = JsonStrings.LOCALDATE_NAME;
 	}
 
 	/**
 	 * @param value The value to set
 	 */
 	public JsonLocalDate(LocalDate value) {
-		super(value);
+		super(JsonStrings.LOCALDATE_NAME, value);
 	}
 
 	/**
@@ -44,7 +44,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	 * @param pattern The pattern to set
 	 */
 	public JsonLocalDate(LocalDate value, String pattern) {
-		this(null, value, pattern);
+		this(JsonStrings.LOCALDATE_NAME, value, pattern);
 	}
 
 	/**
@@ -53,7 +53,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	 * @param locale  The locale to set
 	 */
 	public JsonLocalDate(LocalDate value, String pattern, String locale) {
-		super(null, value, pattern, locale);
+		super(JsonStrings.LOCALDATE_NAME, value, pattern, locale);
 	}
 
 	/**
@@ -63,15 +63,15 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	 * @param timezone The timezone to set
 	 */
 	public JsonLocalDate(LocalDate value, String pattern, String locale, String timezone) {
-		super(null, value, pattern, locale, timezone);
+		super(JsonStrings.LOCALDATE_NAME, value, pattern, locale, timezone);
 	}
 
 	/**
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonLocalDate(LocalDate value, JsonFormatInfo info) {
-		super(null, value, info);
+	public JsonLocalDate(LocalDate value, JsonPatternInfo info) {
+		super(JsonStrings.LOCALDATE_NAME, value, info);
 	}
 
 	/**
@@ -117,12 +117,12 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	 * @param value The value to set
 	 * @param info  The info to set
 	 */
-	public JsonLocalDate(String name, LocalDate value, JsonFormatInfo info) {
+	public JsonLocalDate(String name, LocalDate value, JsonPatternInfo info) {
 		super(name, value, info);
 	}
 
 	@Override
-	public JsonEntry<LocalDate> addObject(String name, Object obj, JsonFormatInfo info) {
+	public JsonEntry<LocalDate> addChild(String name, Object obj, JsonPatternInfo info) {
 		return this;
 	}
 
@@ -173,7 +173,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T toJavaObject(Class<T> clazz, JsonFormatInfo info) {
+	public <T> T toJavaObject(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -212,14 +212,14 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 		if (Util.isString(clazz)) {
 			try {
 				if (info.getLocale() != null) {
-					if (info.getPattern().trim().isEmpty()) {
+					if (info.getPattern() == null || info.getPattern().trim().isEmpty()) {
 						return (T) toJavaObject().format(DateTimeFormatter.ofPattern("uuuu-MM-dd", info.getLocale()));
 					}
 
 					return (T) toJavaObject().format(DateTimeFormatter.ofPattern(info.getPattern(), info.getLocale()));
 				}
 
-				if (!info.getPattern().trim().isEmpty()) {
+				if (info.getPattern() != null && !info.getPattern().trim().isEmpty()) {
 					return (T) toJavaObject().format(DateTimeFormatter.ofPattern(info.getPattern()));
 				}
 			} catch (NullPointerException | DateTimeException | IllegalArgumentException e) {
@@ -237,7 +237,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	}
 
 	@Override
-	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonFormatInfo info) {
+	public <T> Collection<T> toJavaCollection(Class<T> clazz, JsonPatternInfo info) {
 		if (clazz == null) {
 			return null;
 		}
@@ -258,7 +258,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 	}
 
 	@Override
-	public String toPrettyString() {
+	public String toPrettyString(String tab) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(Util.getIndentTab(indentLevel, tab));
@@ -270,7 +270,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 			builder.append(JsonStrings.WHITESPACE);
@@ -298,7 +298,7 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 
 		if (!isArrayChild()) {
 			builder.append(JsonStrings.QUOTATION);
-			builder.append(getKey());
+			builder.append(getName());
 			builder.append(JsonStrings.QUOTATION);
 			builder.append(JsonStrings.COLON);
 		}
@@ -312,6 +312,11 @@ public class JsonLocalDate extends JsonEntry<LocalDate> {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	public JsonEntry<LocalDate> clone() {
+		return new JsonLocalDate(name, value, info);
 	}
 
 }
