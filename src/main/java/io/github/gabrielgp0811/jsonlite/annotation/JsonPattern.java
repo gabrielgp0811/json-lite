@@ -3,8 +3,6 @@
  */
 package io.github.gabrielgp0811.jsonlite.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -15,21 +13,21 @@ import java.lang.annotation.Target;
  * @author gabrielgp0811
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(FIELD)
+@Target({})
 public @interface JsonPattern {
 
 	/**
-	 * @return The format responsible for value's serialization/deserialization.
+	 * @return The pattern responsible for value's serialization/deserialization.
 	 */
 	String value() default "";
 
 	/**
-	 * @return The format responsible for value's serialization.
+	 * @return The pattern responsible for value's serialization.
 	 */
 	String serializePattern() default "";
 
 	/**
-	 * @return The format responsible for value's deserialization.
+	 * @return The pattern responsible for value's deserialization.
 	 */
 	String deserializePattern() default "";
 
