@@ -8,15 +8,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import io.github.gabrielgp0811.jsonlite.Json;
 import io.github.gabrielgp0811.jsonlite.JsonEntry;
-import io.github.gabrielgp0811.jsonlite.annotation.JsonPattern;
+import io.github.gabrielgp0811.jsonlite.annotation.JsonField;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonSerializer;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonSerializers;
+import io.github.gabrielgp0811.jsonlite.converter.Converter;
+import io.github.gabrielgp0811.jsonlite.converter.impl.JsonFieldInfoSerializationConverter;
 import io.github.gabrielgp0811.jsonlite.exception.JsonException;
 import io.github.gabrielgp0811.jsonlite.impl.JsonObject;
 import io.github.gabrielgp0811.jsonlite.serializer.Serializer;
+import io.github.gabrielgp0811.jsonlite.util.JsonFieldInfo;
 
 /**
  * Main implementation responsible for serializing Java objects.
@@ -40,13 +44,17 @@ public final class JsonSerializerImpl implements Serializer {
 
 		if (obj.getClass().isAnnotationPresent(JsonSerializers.class)) {
 			return Arrays.stream(obj.getClass().getDeclaredAnnotation(JsonSerializers.class).value())
-					.filter(serializer -> serializer.name().equals(name)).map(serializer -> serialize(serializer, obj))
-					.findFirst().get();
+					.filter(serializer -> serializer.name().equals(name))
+					.findFirst()
+					.map(serializer -> serialize(serializer, obj))
+					.orElseThrow(() -> new JsonException("No serializer for name: '" + name + "'."));
 		}
 
-		JsonSerializer serializer = obj.getClass().getDeclaredAnnotation(JsonSerializer.class);
-		if (serializer != null && serializer.name().equals(name)) {
-			return serialize(serializer, obj);
+		if (obj.getClass().isAnnotationPresent(JsonSerializer.class)) {
+			JsonSerializer serializer = obj.getClass().getDeclaredAnnotation(JsonSerializer.class);
+			if (serializer.name().equals(name)) {
+				return serialize(serializer, obj);
+			}
 		}
 
 		return null;
@@ -58,57 +66,105 @@ public final class JsonSerializerImpl implements Serializer {
 	 * @return The JSON object.
 	 */
 	private JsonEntry<?> serialize(JsonSerializer serializer, Object obj) {
-		JsonObject json = new JsonObject();
+		final JsonObject json = new JsonObject();
+
+		final Converter<JsonField, JsonFieldInfo> converter = new JsonFieldInfoSerializationConverter();
 
 		Arrays.stream(serializer.fields())
-				.map(field -> toJson(new ArrayList<>(Arrays.asList(field.value().split("[.]"))), obj, field.pattern()))
+				.filter(field -> !field.value().trim().isEmpty())
+				.map(field -> {
+					try {
+						return converter.convert(field);
+					} catch (JsonException e) {
+					}
+					return null;
+				})
+				.filter(Objects::nonNull)
+				.map(fieldInfo -> toJson(obj, fieldInfo))
 				.forEach(json::addChild);
 
 		return json;
 	}
 
 	/**
-	 * @param names A collection of attribute's names.
-	 * @param obj   The Java object.
-	 * @param jp    The annotation containing serialization pattern.
+	 * @param obj       The Java object.
+	 * @param fieldInfo The field info (name, custom name, pattern, locale e
+	 *                  timezone).
 	 * @return The JSON object.
 	 */
-	private JsonEntry<?> toJson(List<String> names, Object obj, JsonPattern jp) {
-		if (names == null || names.isEmpty()) {
-			return null;
+	private JsonEntry<?> toJson(Object obj, JsonFieldInfo fieldInfo) {
+		List<String> names = new ArrayList<>(Arrays.asList(fieldInfo.getName().split("[.]")));
+		List<String> customNames = new ArrayList<>(Arrays.asList(fieldInfo.getCustomNames()[0].split("[.]")));
+
+		int size = names.size();
+		int customSize = customNames.size();
+
+		if (size > customSize) {
+			for (int i = 0; i < size - customSize; i++) {
+				customNames.add(i, names.get(i));
+			}
 		}
 
-		String name = names.remove(0);
+		for (int i = 0; i < customNames.size(); i++) {
+			String customName = customNames.get(i);
 
-		if (!names.isEmpty()) {
-			return new JsonObject(name).addChild(toJson(names, getValue(name, obj), jp));
+			if (customName.trim().isEmpty()) {
+				customName = names.get(i);
+
+				customNames.set(i, customName);
+			}
 		}
 
-		String pattern = null;
-
-		if (!jp.serializePattern().trim().isEmpty()) {
-			pattern = jp.serializePattern();
-		} else if (!jp.value().trim().isEmpty()) {
-			pattern = jp.value();
-		}
-
-		return toJson(name, obj, pattern, jp.locale(), jp.timezone());
+		return toJson(names, customNames, obj, fieldInfo);
 	}
 
 	/**
-	 * @param name
-	 * @param obj
-	 * @param pattern
-	 * @param locale
-	 * @param timezone
-	 * @return
+	 * @param names       A collection of attribute's names.
+	 * @param customNames A collection of attribute's custom names.
+	 * @param obj         The Java object.
+	 * @param fieldInfo   The field info (name, custom name, pattern, locale e
+	 *                    timezone).
+	 * @return The JSON object.
 	 */
-	private JsonEntry<?> toJson(String name, Object obj, String pattern, String locale, String timezone) {
+	private JsonEntry<?> toJson(List<String> names, List<String> customNames, Object obj, JsonFieldInfo fieldInfo) {
+		String name = names.remove(0);
+		String customName = customNames.remove(0);
+
+		if (!names.isEmpty()) {
+			JsonEntry<?> jsonEntry = new JsonObject(customName);
+
+			if (!fieldInfo.getSerializerName().trim().isEmpty()) {
+				try {
+					JsonEntry<?> json = serialize(fieldInfo.getSerializerName(), getValue(name, obj));
+
+					jsonEntry.addChildren(json.getChildren());
+				} catch (JsonException e) {
+				}
+
+				return jsonEntry;
+			}
+
+			return jsonEntry.addChild(toJson(names, customNames, getValue(name, obj), fieldInfo));
+		}
+
 		Object value = getValue(name, obj);
+
+		JsonEntry<?> jsonEntry = new JsonObject(customName);
+
+		if (!fieldInfo.getSerializerName().trim().isEmpty()) {
+			try {
+				JsonEntry<?> json = serialize(fieldInfo.getSerializerName(), value);
+
+				jsonEntry.addChildren(json.getChildren());
+			} catch (JsonException e) {
+			}
+
+			return jsonEntry;
+		}
 
 		if (value != null) {
 			try {
-				return Json.toJson(name, value, pattern, locale, timezone);
+				return Json.toJson(customName, value, fieldInfo.getPatternInfo());
 			} catch (SecurityException | IllegalArgumentException e) {
 			}
 		}
@@ -118,7 +174,7 @@ public final class JsonSerializerImpl implements Serializer {
 
 	/**
 	 * @param name The attribute's name.
-	 * @param obj The Java object.
+	 * @param obj  The Java object.
 	 * @return The attribute's value.
 	 */
 	private Object getValue(String name, Object obj) {
