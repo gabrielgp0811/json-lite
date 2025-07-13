@@ -15,19 +15,34 @@ import lombok.ToString;
  * @author gabrielgp0811
  */
 @JsonSerializer(
-		name = "Address.serialize",
-		fields = {
-				@JsonField("name"),
-				@JsonField("number")
-		}
+	name = "Address.serialize",
+	fields = {
+		@JsonField("name"),
+		@JsonField("number")
+	}
 )
 @JsonSerializer(
-		name = "Address.serializeName",
-		fields = @JsonField("name")
+	name = "Address.prettySerialize",
+	fields = {
+		@JsonField(value = "name", customNameSerialization = "Name"),
+		@JsonField(value = "number", customNameSerialization = "Number")
+	}
 )
 @JsonSerializer(
-		name = "Address.serializeNumber",
-		fields = @JsonField("number")
+	name = "Address.serializeName",
+	fields = @JsonField("name")
+)
+@JsonSerializer(
+	name = "Address.prettySerializeName",
+	fields = @JsonField(value = "name", customName = "Name")
+)
+@JsonSerializer(
+	name = "Address.serializeNumber",
+	fields = @JsonField("number")
+)
+@JsonSerializer(
+	name = "Address.prettySerializeNumber",
+	fields = @JsonField(value = "number", customName = "Number")
 )
 @NoArgsConstructor
 @AllArgsConstructor

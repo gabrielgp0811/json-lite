@@ -18,44 +18,104 @@ import lombok.ToString;
  * @author gabrielgp0811
  */
 @JsonSerializer(
-		name = "User.serialize",
-		fields = {
-				@JsonField("id"),
-				@JsonField("username"),
-				@JsonField("password"),
-				@JsonField("birthDate"),
-				@JsonField("address"),
-		}
+	name = "User.serialize",
+	fields = {
+		@JsonField("id"),
+		@JsonField("username"),
+		@JsonField("password"),
+		@JsonField("birthDate"),
+		@JsonField("address"),
+	}
 )
 @JsonSerializer(
-		name = "User.serializeSecure",
-		fields = {
-				@JsonField("id"),
-				@JsonField("username"),
-				@JsonField("birthDate"),
-				@JsonField("address"),
-		}
+	name = "User.prettySerialize",
+	fields = {
+		@JsonField(value = "id", customNameSerialization = "ID"),
+		@JsonField(value = "username", customNameSerialization = "Username"),
+		@JsonField(value = "password", customNameSerialization = "Password"),
+		@JsonField(
+			value = "birthDate",
+			customNameSerialization = "Birth Date",
+			pattern = @JsonPattern("yyyy-MM-dd")
+		),
+		@JsonField(
+			value = "address",
+			customNameSerialization = "Address",
+			serializerName = "Address.prettySerialize"
+		),
+	}
 )
 @JsonSerializer(
-		name = "User.serializeIdUsername",
-		fields = {
-				@JsonField("id"),
-				@JsonField("username"),
-		}
+	name = "User.serializeSecure",
+	fields = {
+		@JsonField("id"),
+		@JsonField("username"),
+		@JsonField("birthDate"),
+		@JsonField("address")
+	}
 )
 @JsonSerializer(
-		name = "User.serializeUsernameAddress",
-		fields = {
-				@JsonField("username"),
-				@JsonField("address"),
-		}
+	name = "User.prettySerializeSecure",
+	fields = {
+		@JsonField(value = "id", customNameSerialization = "ID"),
+		@JsonField(value = "username", customNameSerialization = "Username"),
+		@JsonField(value = "birthDate", customNameSerialization = "Birth Date"),
+		@JsonField(
+			value = "address",
+			customNameSerialization = "Address",
+			serializerName = "Address.prettySerialize"
+		),
+	}
 )
 @JsonSerializer(
-		name = "User.serializeUsernameAddressName",
-		fields = {
-				@JsonField("username"),
-				@JsonField("address.name"),
-		}
+	name = "User.serializeIdUsername", 
+	fields = {
+		@JsonField("id"),
+		@JsonField("username"),
+	}
+)
+@JsonSerializer(
+	name = "User.prettySerializeIdUsername",
+	fields = {
+		@JsonField(value = "id", customNameSerialization = "ID"),
+		@JsonField(value = "username", customNameSerialization = "Username"),
+	}
+)
+@JsonSerializer(
+	name = "User.serializeUsernameAddress", 
+	fields = {
+		@JsonField(value = "username"),
+		@JsonField(value = "address"),
+	}
+)
+@JsonSerializer(
+	name = "User.prettySerializeUsernameAddress", 
+	fields = {
+		@JsonField(value = "username", customNameSerialization = "Username"),
+		@JsonField(
+			value = "address",
+			customNameSerialization = "Address",
+			serializerName = "Address.prettySerialize"
+		),
+	}
+)
+@JsonSerializer(
+	name = "User.serializeUsernameAddressName", 
+	fields = {
+		@JsonField("username"),
+		@JsonField("address.name")
+	}
+)
+@JsonSerializer(
+	name = "User.prettySerializeUsernameAddressName",
+	fields = {
+		@JsonField(value = "username", customNameSerialization = "Username"),
+		@JsonField(
+			value = "address",
+			customNameSerialization = "Address",
+			serializerName = "Address.prettySerializeName"
+		),
+	}
 )
 @NoArgsConstructor
 @AllArgsConstructor
@@ -70,9 +130,16 @@ public class User {
 
 	private String password = null;
 
-	@JsonPattern(value = "yyyy-MM-dd")
+	@JsonField(
+		customNameSerialization = "Birth Date",
+		customNamesDeserialization = { "BirthDate", "Birth Date" },
+		pattern = @JsonPattern("yyyy-MM-dd")
+	)
 	private Date birthDate = null;
 
+	@JsonField(
+		customNamesDeserialization = "Address"
+	)
 	private Address address = null;
 
 }
