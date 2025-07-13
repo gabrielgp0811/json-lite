@@ -68,8 +68,63 @@ public final class JsonStrings {
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator", "\n");
 
 	/**
-	 * The value's name.
+	 * The field's name.
 	 */
-	public static final String VALUE_NAME = "value";
+	public static final String FIELD_NAME = "name";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonBoolean JsonBoolean}.
+	 */
+	public static final String BOOLEAN_NAME = "boolean";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonCollection JsonCollection}.
+	 */
+	public static final String COLLECTION_NAME = "collection";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonDate JsonDate}.
+	 */
+	public static final String DATE_NAME = "date";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonEnum JsonEnum}.
+	 */
+	public static final String ENUM_NAME = "enum";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonLocalDate JsonLocalDate}.
+	 */
+	public static final String LOCALDATE_NAME = "localDate";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonLocalTime JsonLocalTime}.
+	 */
+	public static final String LOCALTIME_NAME = "localTime";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonLocalDateTime JsonLocalDateTime}.
+	 */
+	public static final String LOCALDATETIME_NAME = "localDateTime";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonNull JsonNull}.
+	 */
+	public static final String NULL_NAME = "null";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonNumber JsonNumber}.
+	 */
+	public static final String NUMBER_NAME = "number";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonObject JsonObject}.
+	 */
+	public static final String OBJECT_NAME = "object";
+
+	/**
+	 * The field's name for {@link io.github.gabrielgp0811.jsonlite.impl.JsonString JsonString}.
+	 */
+	public static final String STRING_NAME = "string";
 
 }
