@@ -4,21 +4,11 @@
 package io.github.gabrielgp0811.jsonlite.util;
 
 import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.Arrays;
 
 /**
  * @author gabrielgp0811
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
 public class JsonFieldInfo implements Serializable {
 
 	/**
@@ -34,24 +24,60 @@ public class JsonFieldInfo implements Serializable {
 
 	private JsonPatternInfo patternInfo = null;
 
-	/**
-	 * @param name        the name to set
-	 * @param patternInfo the patternInfo to set
-	 */
+	public JsonFieldInfo() {
+	}
+
 	public JsonFieldInfo(String name, JsonPatternInfo patternInfo) {
 		this(name, new String[0], patternInfo);
 	}
 
-	/**
-	 * @param name        the name to set
-	 * @param customNames the custom names to set
-	 * @param patternInfo the patternInfo to set
-	 */
 	public JsonFieldInfo(String name, String[] customNames, JsonPatternInfo patternInfo) {
+		this(name, customNames, "", patternInfo);
+	}
+
+	public JsonFieldInfo(String name, String[] customNames, String serializerName, JsonPatternInfo patternInfo) {
 		this.name = name;
 		this.customNames = customNames;
-		this.serializerName = "";
+		this.serializerName = serializerName;
 		this.patternInfo = patternInfo;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String[] getCustomNames() {
+		return customNames;
+	}
+
+	public void setCustomNames(String[] customNames) {
+		this.customNames = customNames;
+	}
+
+	public String getSerializerName() {
+		return serializerName;
+	}
+
+	public void setSerializerName(String serializerName) {
+		this.serializerName = serializerName;
+	}
+
+	public JsonPatternInfo getPatternInfo() {
+		return patternInfo;
+	}
+
+	public void setPatternInfo(JsonPatternInfo patternInfo) {
+		this.patternInfo = patternInfo;
+	}
+
+	@Override
+	public String toString() {
+		return "JsonFieldInfo [name=" + name + ", customNames=" + Arrays.toString(customNames) + ", serializerName="
+				+ serializerName + ", patternInfo=" + patternInfo + "]";
 	}
 
 }

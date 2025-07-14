@@ -5,11 +5,6 @@ package io.github.gabrielgp0811.jsonlite;
 
 import io.github.gabrielgp0811.jsonlite.annotation.JsonField;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author gabrielgp0811
@@ -44,15 +39,39 @@ import lombok.ToString;
 	name = "Address.prettySerializeNumber",
 	fields = @JsonField(value = "number", customName = "Number")
 )
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
 public class Address {
 
 	private String name = null;
 
 	private Integer number = null;
+
+	public Address() {
+	}
+
+	public Address(String name, Integer number) {
+		this.name = name;
+		this.number = number;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Integer getNumber() {
+		return number;
+	}
+
+	public void setNumber(Integer number) {
+		this.number = number;
+	}
+
+	@Override
+	public String toString() {
+		return "Address [name=" + name + ", number=" + number + "]";
+	}
 
 }

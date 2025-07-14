@@ -8,11 +8,6 @@ import java.util.Date;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonField;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonPattern;
 import io.github.gabrielgp0811.jsonlite.annotation.JsonSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author gabrielgp0811
@@ -117,11 +112,6 @@ import lombok.ToString;
 		),
 	}
 )
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
 public class User {
 
 	private Integer id = null;
@@ -141,5 +131,62 @@ public class User {
 		customNamesDeserialization = "Address"
 	)
 	private Address address = null;
+
+	public User() {
+	}
+
+	public User(Integer id, String username, String password, Date birthDate, Address address) {
+		this.id = id;
+		this.username = username;
+		this.password = password;
+		this.birthDate = birthDate;
+		this.address = address;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public Date getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(Date birthDate) {
+		this.birthDate = birthDate;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", username=" + username + ", password=" + password + ", birthDate=" + birthDate
+				+ ", address=" + address + "]";
+	}
 
 }
